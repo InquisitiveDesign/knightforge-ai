@@ -1,5 +1,3 @@
-// -------- App.jsx --------
-
 import React,{useEffect,useRef,useState} from "react";
 import {Chess} from "chess.js";
 import {Chessboard} from "react-chessboard";
