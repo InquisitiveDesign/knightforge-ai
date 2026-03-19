@@ -10,10 +10,13 @@ const [game,setGame]=useState(new Chess());
 const [fen,setFen]=useState(game.fen());
 const [history,setHistory]=useState([]);
 const [evalScore,setEval]=useState(0);
+const [prevEval,setPrevEval]=useState(0);
+const [moveQuality,setMoveQuality]=useState("-");
 const [best,setBest]=useState("-");
 const [depth,setDepth]=useState(12);
 const [thinking,setThinking]=useState(false);
 const [engineReady,setEngineReady]=useState(false);
+const [status,setStatus]=useState("Game running");
 
 const engine=useRef(null);
 
@@ -33,7 +36,17 @@ if(line.includes("score cp")){
 
 let v=line.split("score cp ")[1].split(" ")[0];
 
-setEval((v/100).toFixed(2));
+let current=(v/100);
+
+setEval(current.toFixed(2));
+
+let diff=Math.abs(prevEval-current);
+
+if(diff<0.3) setMoveQuality("Best");
+else if(diff<0.8) setMoveQuality("Good");
+else if(diff<1.5) setMoveQuality("Inaccuracy");
+else if(diff<3) setMoveQuality("Mistake");
+else setMoveQuality("Blunder");
 
 }
 
@@ -61,13 +74,7 @@ promotion:'q'
 
 });
 
-setGame(g);
-
-setFen(g.fen());
-
-setHistory(g.history());
-
-evalPosition(g.fen());
+updateGame(g);
 
 }
 
@@ -81,7 +88,7 @@ engine.current.terminate();
 
 };
 
-},[game]);
+},[game,prevEval]);
 
 function evalPosition(f){
 
@@ -91,11 +98,61 @@ engine.current.postMessage("go depth "+depth);
 
 }
 
+function updateGame(g){
+
+setGame(g);
+
+setFen(g.fen());
+
+setHistory(g.history());
+
+evalPosition(g.fen());
+
+checkGameState(g);
+
+}
+
+function checkGameState(g){
+
+if(g.isCheckmate()){
+
+setStatus("Checkmate");
+
+}
+
+else if(g.isStalemate()){
+
+setStatus("Stalemate");
+
+}
+
+else if(g.isDraw()){
+
+setStatus("Draw");
+
+}
+
+else if(g.isCheck()){
+
+setStatus("Check");
+
+}
+
+else{
+
+setStatus("Game running");
+
+}
+
+}
+
 function playerMove(m){
 
 if(game.turn()!==playerColor){
 return false;
 }
+
+setPrevEval(Number(evalScore));
 
 let g=new Chess(game.fen());
 
@@ -105,13 +162,7 @@ if(!result){
 return false;
 }
 
-setGame(g);
-
-setFen(g.fen());
-
-setHistory(g.history());
-
-evalPosition(g.fen());
+updateGame(g);
 
 if(g.turn()==='b' && !g.isGameOver()){
 
@@ -145,11 +196,19 @@ setBest("-");
 
 setEval(0);
 
+setPrevEval(0);
+
+setMoveQuality("-");
+
+setStatus("Game running");
+
 }
 
 return(
 
-<div style={{
+<div style={
+
+{
 
 fontFamily:'Arial',
 
@@ -165,28 +224,26 @@ maxWidth:'1200px',
 
 margin:'auto'
 
-}}>
+}
+
+}>
 
 <h1>KnightForge AI ♟️</h1>
 
-<p style={{
+<p style={{color:'gray'}}>
 
-color:'gray',
-
-marginBottom:'20px'
-
-}}>
-
-Free AI chess trainer – Beta version
+AI Chess Trainer – Beta
 
 </p>
 
-<p style={{fontSize:'14px',color:'#444'}}>
+<p>
 
 Engine: {engineReady?"Ready":"Loading"} |
-AI Status: {thinking?"Thinking...":"Idle"}
+AI: {thinking?"Thinking":"Idle"}
 
 </p>
+
+<h3>Status: {status}</h3>
 
 <div style={{display:'flex',gap:'40px'}}>
 
@@ -234,7 +291,7 @@ New Game
 
 </div>
 
-<div style={{width:'280px'}}>
+<div style={{width:'300px'}}>
 
 <h3>Engine Analysis</h3>
 
@@ -242,7 +299,9 @@ New Game
 
 <p>Best move: {best}</p>
 
-<p>Engine strength (Depth)</p>
+<p>Your move quality: <b>{moveQuality}</b></p>
+
+<p>Engine strength</p>
 
 <input
 
@@ -262,7 +321,7 @@ onChange={(e)=>setDepth(Number(e.target.value))}
 
 <div style={{
 
-maxHeight:'300px',
+maxHeight:'260px',
 
 overflow:'auto',
 
@@ -286,9 +345,7 @@ padding:'10px'
 
 <p style={{fontSize:'14px'}}>
 
-Testing beta version.<br/>
-
-Share feedback with developer.
+Testing beta version.
 
 </p>
 
@@ -340,7 +397,7 @@ fontSize:'14px'
 
 }}>
 
-KnightForge AI – Experimental chess improvement platform
+KnightForge AI – AI Training Platform Prototype
 
 </footer>
 
