@@ -171,12 +171,29 @@ padding:'10px'
 
 <div style={{marginTop:'20px'}}>
 
-<b>Feedback</b>
+    <b>Feedback</b>
 
-<p style={{fontSize:'14px'}}>
-Testing beta version.
-Share feedback with developer.
-</p>
+    <p style={{fontSize:'14px'}}>
+    Testing beta version.<br/>
+    Share feedback with developer.
+    </p>
+
+    <a
+    href="https://forms.gle/aSuX5EZ2NYNHJFUd7"
+    target="_blank"
+    rel="noopener noreferrer"
+    style={{
+    display:'inline-block',
+    marginTop:'8px',
+    padding:'8px 14px',
+    background:'#2563eb',
+    color:'white',
+    textDecoration:'none',
+    borderRadius:'6px'
+    }}
+    >
+    Give Feedback
+    </a>
 
 </div>
 
